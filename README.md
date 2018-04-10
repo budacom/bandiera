@@ -26,6 +26,19 @@ We prefer the docker setup as this is most likely closer to a production setup
 than your local machine (unless you run the same OS and setup as your
 production boxes).
 
+## Simplified Docker Setup
+
+To get started, you will need to install [docker](https://www.docker.com/) and
+[docker-compose](https://docs.docker.com/compose/) - see the quick install instructions below for your
+OS.
+
+Then run the following commands to create an image and then run the server:
+
+```
+make build
+make up
+```
+
 ## Docker Setup
 
 To get started, you will need to install [docker](https://www.docker.com/) and
