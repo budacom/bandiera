@@ -1,0 +1,34 @@
+pipeline:
+  gcr:
+    image: plugins/gcr
+    registry: us.gcr.io
+    repo: ops-support-191021/heimdall
+    secrets: [ gcr_json_key ]
+    tags:
+      - ${CI_TAG=${CI_COMMIT_SHA}}
+    when:
+      event: [ tag, push ]
+
+  deploy:
+    when:
+      event: tag
+    image: gcr.io/hightowerlabs/hub
+    secrets: [ hub_config ]
+    environment:
+      - HUB_CONFIG_PATH=/root/.config/hub
+    commands:
+      # Set hub and git
+      - ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+      - echo $HUB_CONFIG | base64 --decode > $HUB_CONFIG_PATH
+      - hub config --global credential.https://github.com.helper /usr/local/bin/hub-credential-helper
+      - hub config --global user.email "$${ACTIVE_ACCOUNT}"
+      - hub config --global user.name "Drone CD"
+      - unset HUB_CONFIG
+
+      # Clone infrastructure repository
+      - hub clone https://github.com/${CI_REPO}-infra.git infra
+      - cd infra
+
+      # Trigger deployment
+      - git branch "release/${CI_TAG}"
+      - git push origin "release/${CI_TAG}"
