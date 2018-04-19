@@ -2,7 +2,7 @@ pipeline:
   gcr:
     image: plugins/gcr
     registry: us.gcr.io
-    repo: ops-support-191021/heimdall
+    repo: ops-support-191021/bandieracho
     secrets: [ gcr_json_key ]
     tags:
       - ${CI_TAG=${CI_COMMIT_SHA}}
