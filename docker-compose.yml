@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   app:
     image: bandiera
@@ -9,12 +9,10 @@ services:
       - '5000:5000'
     environment:
       RACK_ENV: 'development'
-      DATABASE_URL: 'postgres://bandiera:bandiera@db/bandiera'
+      DATABASE_URL: 'mysql2://root@db/bandiera'
       LOG_TO_STDOUT: 'true'
       RACK_CORS_ORIGINS: '*'
-    links:
-      - db
-
+    
   test:
     build:
       context: ./
@@ -27,9 +25,13 @@ services:
       LOG_TO_STDOUT: 'true'
 
   db:
-    image: postgres
-    ports:
-      - '5432'
+    image: mysql:5.6
+    volumes:
+      - mysql_data:/var/lib/mysql
     environment:
-      POSTGRES_USER: 'bandiera'
-      POSTGRES_PASSWORD: 'bandiera'
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=bandiera
+  
+volumes:
+ mysql_data:
+

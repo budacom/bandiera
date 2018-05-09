@@ -12,7 +12,7 @@ module Bandiera
         if ENV['PG_DB_USER'].nil? || ENV['PG_DB_PASSWORD'].nil? || ENV['PG_DB_HOST'].nil?
           raise ArgumentError, 'You must set a DATABASE_URL environment variable or PG_DB_USER, PG_DB_PASSWORD and PG_DB_HOST' 
         end
-        database_url = "postgres://#{ENV['PG_DB_USER']}:#{ENV['PG_DB_PASSWORD']}@#{ENV['PG_DB_HOST']}/bandiera"
+        database_url = "mysql2://#{ENV['PG_DB_USER']}:#{ENV['PG_DB_PASSWORD']}@#{ENV['PG_DB_HOST']}/#{ENV['PG_DB_PROD']}"
       end
       @db ||= Sequel.connect(database_url)
     end
