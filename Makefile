@@ -9,11 +9,22 @@ docker-login:
 	  tar zxf google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz; \
 	  ./google-cloud-sdk/install.sh --additional-components gcloud kubectl --usage-reporting false -q; \
 	fi;
+	@if [ $$(gcloud auth list --format='value(account)' 2> /dev/null | grep @ > /dev/null; echo $$?) != 0 ]; then \
+	  gcloud auth login; \
+	fi;
+	@echo ""
+	@echo Using google account: $$(gcloud auth list --format='value(account)' 2> /dev/null)
+	@echo For using another account run: make gcloud-revoke
+	@echo ""
 	gcloud auth configure-docker -q;
 	gcloud container clusters get-credentials core --zone us-east1-b --project buda-core-staging
 
 log-staging:
 	kubectl --context gke_buda-core-staging_us-east1-b_core -n bandiera-staging logs -f $$(kubectl --context gke_buda-core-staging_us-east1-b_core -n bandiera-staging get pods -o name -l app=bandiera) -c bandiera
+
+
+gcloud-revoke:
+        gcloud auth revoke
 
 build:
 	docker build . -t bandiera
