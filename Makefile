@@ -1,9 +1,15 @@
-export PATH := $(PATH):$(PWD)/.docker
+export PATH := $(PATH):$(PWD)/.gcloud/google-cloud-sdk/bin/
 SHELL := /bin/bash
 
 docker-login:
-	if [ ! $$(which gcloud) ] || [ ! $$(which kubectl) ]; then mkdir -p .gcloud; cd .gcloud; curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -o google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -L; tar zxf google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz; ./google-cloud-sdk/install.sh --additional-components kubectl --usage-reporting false -q; . ~/.bashrc; fi;
-	gcloud auth configure-docker -q
+	@if [ ! $$(which gcloud) ] || [ ! $$(which kubectl) ]; then \
+	  mkdir -p .gcloud; \
+	  cd .gcloud; \
+	  curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -o google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -L; \
+	  tar zxf google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz; \
+	  ./google-cloud-sdk/install.sh --additional-components gcloud kubectl --usage-reporting false -q; \
+	fi;
+	gcloud auth configure-docker -q;
 	gcloud container clusters get-credentials core --zone us-east1-b --project buda-core-staging
 
 log-staging:
