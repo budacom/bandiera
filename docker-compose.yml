@@ -1,7 +1,7 @@
 version: '3'
 services:
-  app:
-    image: bandiera
+  bandiera:
+    image: us.gcr.io/ops-support-191021/bandiera:$VERSION
     volumes:
       - .:/app
     command: 'bundle exec shotgun -p 5000 -o 0.0.0.0 -s puma'
@@ -9,7 +9,7 @@ services:
       - '5000:5000'
     environment:
       RACK_ENV: 'development'
-      DATABASE_URL: 'mysql2://root@db/bandiera'
+      DATABASE_URL: 'mysql2://root@mysql/bandiera'
       LOG_TO_STDOUT: 'true'
       RACK_CORS_ORIGINS: '*'
     
@@ -24,7 +24,7 @@ services:
       RACK_ENV: 'test'
       LOG_TO_STDOUT: 'true'
 
-  db:
+  mysql:
     image: mysql:5.6
     volumes:
       - mysql_data:/var/lib/mysql
