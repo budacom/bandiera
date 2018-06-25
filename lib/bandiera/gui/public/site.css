@@ -25,3 +25,9 @@
 .bandiera-feature-group .panel-body .no-features {
   margin: 15px;
 }
+
+.bandiera-group-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
