@@ -61,6 +61,16 @@ module Bandiera
       end
     end
 
+    get '/groups/:group_name/delete' do |group_name|
+      _get_delete_group(group_name)
+    end
+
+    def _get_delete_group(group_name)
+      feature_service.remove_group(audit_context, group_name)
+      flash[:success] = 'Group deleted.'
+      redirect '/'
+    end
+
     # Features
 
     get '/new/feature' do

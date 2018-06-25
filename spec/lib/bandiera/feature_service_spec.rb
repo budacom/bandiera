@@ -19,6 +19,19 @@ RSpec.describe Bandiera::FeatureService do
     end
   end
 
+  describe '#remove_feature' do
+    before do
+      subject.add_group(audit_context, 'cheese')
+    end
+
+    it 'records to the audit log' do
+      expect(audit_log).to receive(:record)
+        .with(audit_context, :remove, :group, name: 'cheese')
+
+      subject.remove_group(audit_context, 'cheese')
+    end
+  end
+
   describe '#add_feature' do
     it 'records to the audit log' do
       expect(audit_log).to receive(:record)

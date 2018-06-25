@@ -31,6 +31,11 @@ module Bandiera
       result
     end
 
+    def remove_group(audit_context, group)
+      affected_rows = Group.find(name: group).delete
+      @audit_log.record(audit_context, :remove, :group, name: group)
+    end
+
     def fetch_groups
       Group.order(Sequel.asc(:name))
     end
