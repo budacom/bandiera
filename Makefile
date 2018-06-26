@@ -40,7 +40,7 @@ gcloud-revoke:
 	gcloud auth revoke
 
 mysql-rm: down
-	docker volume rm ${REPO}$(subst .,,$(VERSION))_mysql_data
+	docker volume rm ${REPO}-$(subst .,,$(VERSION))_mysql_data
 
 mysql-init:
 	# docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_import
