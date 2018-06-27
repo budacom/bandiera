@@ -31,6 +31,17 @@ services:
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_DATABASE=bandiera
+
+  mysql_migrate:
+    image: us.gcr.io/ops-support-191021/bandiera:$VERSION
+    command: ["bundle", "exec", "rake db:migrate --trace"]
+    volumes:
+       - .:/app
+    environment:
+      RACK_ENV: 'development'
+      DATABASE_URL: 'mysql2://root@mysql/bandiera'
+      LOG_TO_STDOUT: 'true'
+      RACK_CORS_ORIGINS: '*'
   
 volumes:
  mysql_data:

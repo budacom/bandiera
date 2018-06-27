@@ -45,7 +45,7 @@ mysql-rm: down
 mysql-init:
 	# docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_import
 	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up -d mysql
-	#docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_migrate
+	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_migrate
 
 build:
 	docker build . -t us.gcr.io/ops-support-191021/${REPO}:${VERSION}
