@@ -21,7 +21,7 @@ pipeline:
       - ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
       - echo $HUB_CONFIG | base64 --decode > $HUB_CONFIG_PATH
       - hub config --global credential.https://github.com.helper /usr/local/bin/hub-credential-helper
-      - hub config --global user.email "$${ACTIVE_ACCOUNT}"
+      - hub config --global user.email "cicd@budadev.com"
       - hub config --global user.name "Drone CD"
       - unset HUB_CONFIG
 
