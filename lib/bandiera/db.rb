@@ -9,10 +9,10 @@ module Bandiera
     def self.connect
       database_url = ENV['DATABASE_URL']
       if database_url.nil?
-        if ENV['PG_DB_USER'].nil? || ENV['PG_DB_PASSWORD'].nil? || ENV['PG_DB_HOST'].nil?
-          raise ArgumentError, 'You must set a DATABASE_URL environment variable or PG_DB_USER, PG_DB_PASSWORD and PG_DB_HOST' 
+        if ENV['DB_USERNAME'].nil? || ENV['DB_PASSWORD'].nil? || ENV['DB_HOSTNAME'].nil?
+          raise ArgumentError, 'You must set a DATABASE_URL environment variable or DB_USERNAME, DB_PASSWORD and DB_HOSTNAME'
         end
-        database_url = "mysql2://#{ENV['PG_DB_USER']}:#{ENV['PG_DB_PASSWORD']}@#{ENV['PG_DB_HOST']}/#{ENV['PG_DB_PROD']}"
+        database_url = "mysql2://#{ENV['DB_USERNAME']}:#{ENV['DB_PASSWORD']}@#{ENV['DB_HOSTNAME']}/#{ENV['DB_DATABASE']}"
       end
       @db ||= Sequel.connect(database_url)
     end
