@@ -4,9 +4,14 @@ services:
     image: us.gcr.io/ops-support-191021/bandiera:$VERSION
     volumes:
       - .:/app
-    command: 'bundle exec shotgun -p 5000 -o 0.0.0.0 -s puma'
+    command: 'bundle exec shotgun -p 5050 -o 0.0.0.0 -s puma'
     ports:
-      - '5000:5000'
+      - '5050:5050'
+    networks: 
+      budadev:
+        aliases:
+          - bandiera
+      local:
     environment:
       RACK_ENV: 'development'
       DATABASE_URL: 'mysql2://root@mysql/bandiera'
@@ -23,6 +28,8 @@ services:
     environment:
       RACK_ENV: 'test'
       LOG_TO_STDOUT: 'true'
+    networks:
+      - local
 
   mysql:
     image: mysql:5.6
@@ -31,6 +38,8 @@ services:
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_DATABASE=bandiera
+    networks:
+      - local
 
   mysql_migrate:
     image: us.gcr.io/ops-support-191021/bandiera:$VERSION
@@ -42,7 +51,13 @@ services:
       DATABASE_URL: 'mysql2://root@mysql/bandiera'
       LOG_TO_STDOUT: 'true'
       RACK_CORS_ORIGINS: '*'
+    networks:
+      - local
   
 volumes:
  mysql_data:
 
+networks:
+  budadev:
+    external: true
+  local:
