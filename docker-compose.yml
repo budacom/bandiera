@@ -1,38 +1,32 @@
 version: '3'
 services:
-  bandiera:
-    image: us.gcr.io/ops-support-191021/bandiera:$VERSION
-    volumes:
-      - .:/app
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bandiera-dev
     command: 'bundle exec shotgun -p 5050 -o 0.0.0.0 -s puma'
     ports:
       - '5050:5050'
-    networks: 
+    stdin_open: true
+    tty: true
+    networks:
       budadev:
         aliases:
           - bandiera
       local:
+    depends_on:
+      - mysql
     environment:
       RACK_ENV: 'development'
       DATABASE_URL: 'mysql2://root@mysql/bandiera'
       LOG_TO_STDOUT: 'true'
       RACK_CORS_ORIGINS: '*'
-    
-  test:
-    build:
-      context: ./
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-    command: 'bundle exec guard -i -p -l 1'
-    environment:
-      RACK_ENV: 'test'
-      LOG_TO_STDOUT: 'true'
-    networks:
-      - local
 
   mysql:
     image: mysql:5.6
+    ports:
+      - 3306
     volumes:
       - mysql_data:/var/lib/mysql
     environment:
@@ -41,19 +35,6 @@ services:
     networks:
       - local
 
-  mysql_migrate:
-    image: us.gcr.io/ops-support-191021/bandiera:$VERSION
-    command: ["bundle", "exec", "rake db:migrate --trace"]
-    volumes:
-       - .:/app
-    environment:
-      RACK_ENV: 'development'
-      DATABASE_URL: 'mysql2://root@mysql/bandiera'
-      LOG_TO_STDOUT: 'true'
-      RACK_CORS_ORIGINS: '*'
-    networks:
-      - local
-  
 volumes:
  mysql_data:
 
