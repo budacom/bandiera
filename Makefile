@@ -1,63 +1,62 @@
-REPO := bandiera
-export VERSION ?= develop
-export VERSION_MYSQL ?= develop
-DOCKER_COMPOSE_YML ?= docker-compose.yml
+PROJECT ?= bandiera
+LOGS_SINCE := 3h
 
-export PATH := $(PATH):$(PWD)/.gcloud/google-cloud-sdk/bin/
 SHELL := /bin/bash
+REQUIRED_BINS := docker docker-compose gem docker-sync
 
-docker-login:
-	@if [ ! $$(which gcloud) ] || [ ! $$(which kubectl) ]; then \
-	  mkdir -p .gcloud; \
-	  cd .gcloud; \
-	  curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -o google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz -L; \
-	  tar zxf google-cloud-sdk-200.0.0-darwin-x86_64.tar.gz; \
-	  ./google-cloud-sdk/install.sh --additional-components gcloud kubectl --usage-reporting false -q; \
-	fi;
-	@if [ $$(gcloud auth list --format='value(account)' 2> /dev/null | grep @ > /dev/null; echo $$?) != 0 ]; then \
-	  gcloud auth login; \
-	fi;
+run: help
+
+BOLD ?= $(shell tput bold)
+NORMAL ?= $(shell tput sgr0)
+
+help:
+	@echo "${BOLD}Local environment tasks:${NORMAL}"
+	@echo "  setup				Setup the environment, create containers and initialize app"
+	@echo "  destroy			Clean the environment, remove volumes, containers and images"
+	@echo "  shell				Run bash interactive shell on the app container"
 	@echo ""
-	@echo Using google account: $$(gcloud auth list --format='value(account)' 2> /dev/null)
-	@echo For using another account run: make gcloud-revoke
+	@echo "  syntax: make <task>"
+
+setup: check
 	@echo ""
-	gcloud auth configure-docker -q;
-	gcloud container clusters get-credentials apps-staging --zone us-east1-b --project buda-default-staging || echo No tienes permiso para staging
+	@echo "Getting images from registry.."
+	docker-compose pull
 
-staging-logs:
-	kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging logs -f $$(kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging get pods -o name -l app=${REPO} --sort-by=.status.startTime | tail -n1) -c ${REPO}
+	@echo ""
+	@echo "Preparing network.."
+	docker network inspect budadev >/dev/null 2>&1 || docker network create budadev
 
-staging-console:
-	kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging exec -it $$(kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging get pods -o name -l app=${REPO} --sort-by=.status.startTime | tail -n1 | cut -d / -f 2-) -c ${REPO} bash
+	@echo ""
+	@echo "Initializating database.."
 
-staging-logs:
-	kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging logs -f $$(kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging get pods -o name -l app=${REPO} --sort-by=.status.startTime | tail -n1) -c ${REPO}
+	@echo ""
+	docker-compose up -d mysql; \
+	echo "Waiting for mysql...";\
+	( docker-compose logs -f mysql & ) | grep -q " mysqld: ready for connections";
 
-staging-console:
-	kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging exec -it $$(kubectl --context gke_buda-default-staging_us-east1-b_apps-staging -n ${REPO}-staging get pods -o name -l app=${REPO} --sort-by=.status.startTime | tail -n1 | cut -d / -f 2-) -c ${REPO} bash
+	@echo ""
+	@echo "Preparing application.."
+	docker-compose build app
+	COMPOSE_HTTP_TIMEOUT=360 \
+		docker-compose run --rm app bundle exec rake db:migrate
 
-gcloud-revoke:
-	gcloud auth revoke
+	@echo ""
+	@echo "All done. Go back to the README.md"
 
-mysql-rm: down
-	docker volume rm ${REPO}-$(subst .,,$(VERSION))_mysql_data
+shell:
+	docker-compose run --rm app sh
 
-mysql-init:
-	# docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_import
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up -d mysql
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql_migrate
+destroy: check confirm
+	docker-compose down --volumes
+	docker rmi -f $(PROJECT)-dev:latest >/dev/null 2>&1
 
-build:
-	docker build . -t us.gcr.io/ops-support-191021/${REPO}:${VERSION}
+confirm:
+	@echo WARNING:
+	@echo This command will remove all volumes from the containers, you will need to \
+	setup you local environment from scratch.
+	@echo ""
+	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 
-up: mysql-init
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} up mysql ${REPO}
-
-down:
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} down
-
-bash:
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} run --entrypoint bash ${REPO}
-
-console:
-	docker-compose -p ${REPO}-${VERSION} -f ${DOCKER_COMPOSE_YML} run ${REPO} rails console
+check:
+	$(foreach bin,$(REQUIRED_BINS),\
+	$(if $(shell command -v $(bin) 2> /dev/null),,$(error Please install `$(bin)`)))
