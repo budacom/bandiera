@@ -30,4 +30,4 @@ flags.
     docker-compose up -d app
     ```
 
-    You can now visit the web interface at [http://127.0.0.1:5000](http://127.0.0.1:5000)
+    You can now visit the web interface at [http://0.0.0.0:5050](http://0.0.0.0:5050)
